@@ -6,12 +6,17 @@ Tired of grep-ing through thousands of lines trying to figure out which structs 
 
 ## Installation 🚀
 
+### Option 1: Install it
 ```bash
 go install github.com/psyb0t/gofindimpl@latest
 ```
 
-Or clone and build like it's 2005:
+### Option 2: Run directly (no installation needed)
+```bash
+go run github.com/psyb0t/gofindimpl@latest -interface ./path/to/file.go:InterfaceName -dir ./search/directory
+```
 
+### Option 3: Clone and build like it's 2005
 ```bash
 git clone https://github.com/psyb0t/gofindimpl.git
 cd gofindimpl
@@ -20,22 +25,38 @@ go build -o gofindimpl
 
 ## Usage 💀
 
-### Basic Hunt
+### Basic Hunt (installed)
 
 ```bash
 gofindimpl -interface ./path/to/file.go:InterfaceName -dir ./search/directory
 ```
 
-### Real Example
+### Basic Hunt (direct run)
+
+```bash
+go run github.com/psyb0t/gofindimpl@latest -interface ./path/to/file.go:InterfaceName -dir ./search/directory
+```
+
+### Real Example (installed)
 
 ```bash
 gofindimpl -interface ./internal/app/server.go:Server -dir ./internal/pkg/
 ```
 
+### Real Example (direct run)
+
+```bash
+go run github.com/psyb0t/gofindimpl@latest -interface ./internal/app/server.go:Server -dir ./internal/pkg/
+```
+
 ### With Debug Logging (for masochists)
 
 ```bash
+# Installed
 gofindimpl -interface ./internal/app/server.go:Server -dir ./internal/pkg/ -debug
+
+# Direct run  
+go run github.com/psyb0t/gofindimpl@latest -interface ./internal/app/server.go:Server -dir ./internal/pkg/ -debug
 ```
 
 ## Output Format 📋
