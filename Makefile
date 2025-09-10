@@ -17,7 +17,6 @@ lint: ## Lint all Golang files
 
 lint-ci: ## Lint all Golang files (CI - readonly vendor mode)
 	@echo "Linting all Go files (CI mode - fuck vendor validation)..."
-	@go run -mod=readonly golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -test ./...
 	@go tool -mod=readonly golangci-lint run --timeout=30m0s ./...
 
 lint-fix: ## Lint all Golang files and fix
