@@ -13,7 +13,9 @@ go install github.com/psyb0t/gofindimpl@latest
 
 ### Option 2: Run directly (no installation needed)
 ```bash
-go run github.com/psyb0t/gofindimpl@latest -interface ./path/to/file.go:InterfaceName -dir ./search/directory
+go run github.com/psyb0t/gofindimpl@latest \
+  -interface ./path/to/file.go:InterfaceName \
+  -dir ./search/directory
 ```
 
 ### Option 3: Clone and build like it's 2005
@@ -28,13 +30,17 @@ go build -o gofindimpl
 ### Basic Hunt (installed)
 
 ```bash
-gofindimpl -interface ./path/to/file.go:InterfaceName -dir ./search/directory
+gofindimpl \
+  -interface ./path/to/file.go:InterfaceName \
+  -dir ./search/directory
 ```
 
 ### Basic Hunt (direct run)
 
 ```bash
-go run github.com/psyb0t/gofindimpl@latest -interface ./path/to/file.go:InterfaceName -dir ./search/directory
+go run github.com/psyb0t/gofindimpl@latest \
+  -interface ./path/to/file.go:InterfaceName \
+  -dir ./search/directory
 ```
 
 ### Real Example (installed)
@@ -46,17 +52,25 @@ gofindimpl -interface ./internal/app/server.go:Server -dir ./internal/pkg/
 ### Real Example (direct run)
 
 ```bash
-go run github.com/psyb0t/gofindimpl@latest -interface ./internal/app/server.go:Server -dir ./internal/pkg/
+go run github.com/psyb0t/gofindimpl@latest \
+  -interface ./internal/app/server.go:Server \
+  -dir ./internal/pkg/
 ```
 
 ### With Debug Logging (for masochists)
 
 ```bash
 # Installed
-gofindimpl -interface ./internal/app/server.go:Server -dir ./internal/pkg/ -debug
+gofindimpl \
+  -interface ./internal/app/server.go:Server \
+  -dir ./internal/pkg/ \
+  -debug
 
 # Direct run  
-go run github.com/psyb0t/gofindimpl@latest -interface ./internal/app/server.go:Server -dir ./internal/pkg/ -debug
+go run github.com/psyb0t/gofindimpl@latest \
+  -interface ./internal/app/server.go:Server \
+  -dir ./internal/pkg/ \
+  -debug
 ```
 
 ## Output Format 📋
