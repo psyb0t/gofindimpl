@@ -1,23 +1,19 @@
 MIN_TEST_COVERAGE := 90
 APP_NAME := gofindimpl
 
-.PHONY: all dep lint lint-ci lint-fix test test-coverage test-coverage-ci build build-race
+.PHONY: all dep lint lint-fix test test-coverage build build-race
 
 all: dep lint-fix test-coverage build ## Run all tasks
 
 dep: ## Get project dependencies
 	@echo "Getting project dependencies..."
 	@go mod tidy
-	@go mod vendor
 
 lint: ## Lint all Golang files
 	@echo "Linting all Go files..."
 	@go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -test ./...
 	@go tool golangci-lint run --timeout=30m0s ./...
 
-lint-ci: ## Lint all Golang files (CI - readonly vendor mode)
-	@echo "Linting all Go files (CI mode - fuck vendor validation)..."
-	@GOFLAGS=-mod=readonly go tool golangci-lint run --timeout=30m0s ./...
 
 lint-fix: ## Lint all Golang files and fix
 	@echo "Linting all Go files..."
@@ -45,22 +41,6 @@ test-coverage: ## Run tests with coverage check. Fails if coverage is below the 
 		exit 1; \
 	fi
 
-test-coverage-ci: ## Run tests with coverage check (CI - readonly vendor mode)
-	@echo "Running tests with coverage check (CI mode - bypassing vendor bullshit)..."
-	@trap 'rm -f coverage.txt' EXIT; \
-	go test -mod=readonly -race -coverprofile=coverage.txt $$(go list ./...); \
-	if [ $$? -ne 0 ]; then \
-		echo "Test failed. Exiting."; \
-		exit 1; \
-	fi; \
-	result=$$(go tool cover -func=coverage.txt | grep -oP 'total:\s+\(statements\)\s+\K\d+' || echo "0"); \
-	if [ $$result -eq 0 ]; then \
-		echo "No test coverage information available."; \
-		exit 0; \
-	elif [ $$result -lt $(MIN_TEST_COVERAGE) ]; then \
-		echo "FAIL: Coverage $$result% is less than the minimum $(MIN_TEST_COVERAGE)%"; \
-		exit 1; \
-	fi
 
 build: ## Build the app binary using Docker (optimized, no debug info)
 	@echo "Building $(APP_NAME) binary (optimized)..."
