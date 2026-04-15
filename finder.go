@@ -291,13 +291,13 @@ func (f *Finder) typeImplementsInterface(namedType *types.Named) bool {
 	foundMethods := make(map[string]bool)
 
 	// Add methods from both sets
-	for i := 0; i < valueMethodSet.Len(); i++ {
-		method := valueMethodSet.At(i)
+	for method := range valueMethodSet.Methods() {
+		method := method
 		foundMethods[method.Obj().Name()] = true
 	}
 
-	for i := 0; i < pointerMethodSet.Len(); i++ {
-		method := pointerMethodSet.At(i)
+	for method := range pointerMethodSet.Methods() {
+		method := method
 		foundMethods[method.Obj().Name()] = true
 	}
 

@@ -2,3 +2,5 @@
 build
 *.html
 *.txt
+CLAUDE.md
+git-update.sh
