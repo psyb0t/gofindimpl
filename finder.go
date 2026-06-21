@@ -292,12 +292,10 @@ func (f *Finder) typeImplementsInterface(namedType *types.Named) bool {
 
 	// Add methods from both sets
 	for method := range valueMethodSet.Methods() {
-		method := method
 		foundMethods[method.Obj().Name()] = true
 	}
 
 	for method := range pointerMethodSet.Methods() {
-		method := method
 		foundMethods[method.Obj().Name()] = true
 	}
 
