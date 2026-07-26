@@ -1,5 +1,8 @@
 # gofindimpl 🔍
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/psyb0t/gofindimpl.svg)](https://pkg.go.dev/github.com/psyb0t/gofindimpl)
+[![CI](https://img.shields.io/github/actions/workflow/status/psyb0t/gofindimpl/pipeline.yml?branch=main)](https://github.com/psyb0t/gofindimpl/actions/workflows/pipeline.yml)
+
 Hunt down Go interface implementations like a bloodhound with trust issues.
 
 Tired of grep-ing through thousands of lines trying to figure out which structs actually implement that damn interface? This tool does the heavy lifting so you don't have to suffer through another existential crisis at 3am.
