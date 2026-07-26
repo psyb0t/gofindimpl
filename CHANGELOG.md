@@ -4,12 +4,9 @@ All notable changes per release. Versions follow [semver](https://semver.org).
 
 ## v1.0.3 — 2026-07-26
 
-Coverage reporting to Codecov + README badges.
+README badges + GitHub Sponsors funding config.
 
-- **Codecov coverage upload.** `pipeline.yml` enables the reusable workflow's
-  Codecov step; `make test-coverage` keeps `coverage.txt` (previously deleted
-  on exit) so CI can upload it.
-- **README badges.** pkg.go.dev reference + GitHub Actions CI status badges.
+- pkg.go.dev reference + GitHub Actions CI status badges.
 - Added a GitHub Sponsors funding config. No library code changed.
 
 ## v1.0.2 — 2026-04-15
