@@ -10,6 +10,3 @@ jobs:
       dep_command: "make dep"
       lint_command: "make lint"
       test_command: "make test-coverage"
-      codecov_enabled: true
-    secrets:
-      codecov_token: ${{ secrets.CODECOV_TOKEN }}
