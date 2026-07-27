@@ -2,6 +2,10 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v1.0.4 — 2026-07-27
+
+- Bump `github.com/sirupsen/logrus` 1.9.3 → 1.9.4.
+
 ## v1.0.3 — 2026-07-26
 
 README badges + GitHub Sponsors funding config.
