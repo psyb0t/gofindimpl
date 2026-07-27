@@ -2,15 +2,18 @@ package main
 
 import (
 	"flag"
+	"log/slog"
 	"os"
-	"strings"
 	"testing"
 
-	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseInterfaceSpec(t *testing.T) {
-	tests := []struct {
+	t.Parallel()
+
+	testCases := []struct {
 		name          string
 		spec          string
 		expectedFile  string
@@ -82,100 +85,91 @@ func TestParseInterfaceSpec(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			file, name, err := parseInterfaceSpec(tt.spec)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-			if tt.expectedError {
-				if err == nil {
-					t.Errorf("expected error but got none")
-				}
-			} else {
-				if err != nil {
-					t.Errorf("unexpected error: %v", err)
-				}
-				if file != tt.expectedFile {
-					t.Errorf("expected file '%s', got '%s'", tt.expectedFile, file)
-				}
-				if name != tt.expectedName {
-					t.Errorf("expected name '%s', got '%s'", tt.expectedName, name)
-				}
+			file, name, err := parseInterfaceSpec(tc.spec)
+
+			if tc.expectedError {
+				require.Error(t, err)
+
+				return
 			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedFile, file)
+			assert.Equal(t, tc.expectedName, name)
 		})
 	}
 }
 
 func TestConfigureLogging(t *testing.T) {
-	tests := []struct {
-		name          string
-		debug         bool
-		expectedLevel logrus.Level
+	// not parallel: configureLogging reconfigures the global default slog
+	// handler via slogconf.SetHandlers
+
+	testCases := []struct {
+		name      string
+		debug     bool
+		wantLevel slog.Level
 	}{
 		{
-			name:          "debug enabled",
-			debug:         true,
-			expectedLevel: logrus.DebugLevel,
+			name:      "debug enabled",
+			debug:     true,
+			wantLevel: slog.LevelDebug,
 		},
 		{
-			name:          "debug disabled",
-			debug:         false,
-			expectedLevel: logrus.ErrorLevel,
+			name:      "debug disabled",
+			debug:     false,
+			wantLevel: slog.LevelError,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			configureLogging(tt.debug)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// not parallel: shares the global logger state mutated by
+			// configureLogging
 
-			if logrus.GetLevel() != tt.expectedLevel {
-				t.Errorf("expected log level %v, got %v",
-					tt.expectedLevel, logrus.GetLevel())
-			}
+			assert.Equal(t, tc.wantLevel, logLevel(tc.debug))
 
-			// Check formatter type
-			formatter := logrus.StandardLogger().Formatter
-			if _, ok := formatter.(*logrus.TextFormatter); !ok {
-				t.Error("expected TextFormatter")
-			}
+			configureLogging(tc.debug)
 		})
 	}
 }
 
 func TestSetupUsage(t *testing.T) {
+	// not parallel: mutates os.Args and the global flag.Usage
+
 	originalArgs := os.Args
-	defer func() { os.Args = originalArgs }()
+	t.Cleanup(func() { os.Args = originalArgs })
 
 	os.Args = []string{"testprog"}
 
 	setupUsage()
 
-	if flag.Usage == nil {
-		t.Error("flag.Usage should be set after setupUsage()")
-	}
+	require.NotNil(t, flag.Usage, "flag.Usage should be set after setupUsage()")
 
-	// Test that the usage function doesn't panic
-	defer func() {
-		if r := recover(); r != nil {
-			t.Errorf("setupUsage() created a Usage function that panics: %v", r)
-		}
-	}()
-
-	// This would normally print to stderr, but we just want to test it runs
-	flag.Usage()
+	assert.NotPanics(t, func() {
+		// This would normally print to stderr, but we just want to test it runs.
+		flag.Usage()
+	})
 }
 
 func TestRunFinder(t *testing.T) {
-	// Save original working directory
-	originalWd, _ := os.Getwd()
-	defer os.Chdir(originalWd)
+	// not parallel: subtests call os.Chdir, which mutates global process state
 
-	tests := []struct {
+	originalWd, err := os.Getwd()
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, os.Chdir(originalWd))
+	})
+
+	testCases := []struct {
 		name          string
 		interfaceFile string
 		interfaceName string
 		searchDir     string
 		setup         func(t *testing.T) string // returns temp dir
-		cleanup       func(string)
 		expectedError bool
 		errorContains string
 	}{
@@ -187,7 +181,6 @@ func TestRunFinder(t *testing.T) {
 			setup: func(t *testing.T) string {
 				return ""
 			},
-			cleanup:       func(string) {},
 			expectedError: true,
 			errorContains: "interface file does not exist",
 		},
@@ -199,21 +192,19 @@ func TestRunFinder(t *testing.T) {
 			setup: func(t *testing.T) string {
 				tempDir := t.TempDir()
 				// Create a test interface file
-				err := os.WriteFile(tempDir+"/test.go", []byte("package main"), 0644)
-				if err != nil {
-					t.Fatalf("failed to create test file: %v", err)
-				}
-				os.Chdir(tempDir)
+				err := os.WriteFile(tempDir+"/test.go", []byte("package main"), 0o644)
+				require.NoError(t, err, "failed to create test file")
+				require.NoError(t, os.Chdir(tempDir))
+
 				return tempDir
 			},
-			cleanup:       func(string) {},
 			expectedError: true,
 			errorContains: "search directory does not exist",
 		},
 		{
 			name:          "validateGoModRoot error - no go.mod",
 			interfaceFile: "test.go",
-			interfaceName: "TestInterface", 
+			interfaceName: "TestInterface",
 			searchDir:     ".",
 			setup: func(t *testing.T) string {
 				tempDir := t.TempDir()
@@ -222,15 +213,13 @@ func TestRunFinder(t *testing.T) {
 type TestInterface interface {
 	Test() error
 }`
-				err := os.WriteFile(tempDir+"/test.go", []byte(interfaceContent), 0644)
-				if err != nil {
-					t.Fatalf("failed to create test file: %v", err)
-				}
-				os.Chdir(tempDir)
+				err := os.WriteFile(tempDir+"/test.go", []byte(interfaceContent), 0o644)
+				require.NoError(t, err, "failed to create test file")
+				require.NoError(t, os.Chdir(tempDir))
 				// Don't create go.mod - this will trigger the error
+
 				return tempDir
 			},
-			cleanup:       func(string) {},
 			expectedError: true,
 			errorContains: "go.mod not found in current directory",
 		},
@@ -246,21 +235,17 @@ type TestInterface interface {
 type TestInterface interface {
 	Test() error
 }`
-				err := os.WriteFile(tempDir+"/test.go", []byte(interfaceContent), 0644)
-				if err != nil {
-					t.Fatalf("failed to create test file: %v", err)
-				}
+				err := os.WriteFile(tempDir+"/test.go", []byte(interfaceContent), 0o644)
+				require.NoError(t, err, "failed to create test file")
 				// Create go.mod without module declaration
 				goModContent := `go 1.21
 require example.com/test v1.0.0`
-				err = os.WriteFile(tempDir+"/go.mod", []byte(goModContent), 0644)
-				if err != nil {
-					t.Fatalf("failed to create go.mod: %v", err)
-				}
-				os.Chdir(tempDir)
+				err = os.WriteFile(tempDir+"/go.mod", []byte(goModContent), 0o644)
+				require.NoError(t, err, "failed to create go.mod")
+				require.NoError(t, os.Chdir(tempDir))
+
 				return tempDir
 			},
-			cleanup:       func(string) {},
 			expectedError: true,
 			errorContains: "no module declaration found",
 		},
@@ -276,21 +261,17 @@ require example.com/test v1.0.0`
 type SomeOtherInterface interface {
 	Test() error
 }`
-				err := os.WriteFile(tempDir+"/test.go", []byte(interfaceContent), 0644)
-				if err != nil {
-					t.Fatalf("failed to create test file: %v", err)
-				}
+				err := os.WriteFile(tempDir+"/test.go", []byte(interfaceContent), 0o644)
+				require.NoError(t, err, "failed to create test file")
 				// Create valid go.mod
 				goModContent := `module test.com/example
 go 1.21`
-				err = os.WriteFile(tempDir+"/go.mod", []byte(goModContent), 0644)
-				if err != nil {
-					t.Fatalf("failed to create go.mod: %v", err)
-				}
-				os.Chdir(tempDir)
+				err = os.WriteFile(tempDir+"/go.mod", []byte(goModContent), 0o644)
+				require.NoError(t, err, "failed to create go.mod")
+				require.NoError(t, os.Chdir(tempDir))
+
 				return tempDir
 			},
-			cleanup:       func(string) {},
 			expectedError: true,
 			errorContains: "interface not found",
 		},
@@ -304,21 +285,17 @@ go 1.21`
 				// Create malformed Go file
 				interfaceContent := `package main
 invalid go syntax here @@#$#@$`
-				err := os.WriteFile(tempDir+"/test.go", []byte(interfaceContent), 0644)
-				if err != nil {
-					t.Fatalf("failed to create test file: %v", err)
-				}
+				err := os.WriteFile(tempDir+"/test.go", []byte(interfaceContent), 0o644)
+				require.NoError(t, err, "failed to create test file")
 				// Create valid go.mod
 				goModContent := `module test.com/example
 go 1.21`
-				err = os.WriteFile(tempDir+"/go.mod", []byte(goModContent), 0644)
-				if err != nil {
-					t.Fatalf("failed to create go.mod: %v", err)
-				}
-				os.Chdir(tempDir)
+				err = os.WriteFile(tempDir+"/go.mod", []byte(goModContent), 0o644)
+				require.NoError(t, err, "failed to create go.mod")
+				require.NoError(t, os.Chdir(tempDir))
+
 				return tempDir
 			},
-			cleanup:       func(string) {},
 			expectedError: true,
 			errorContains: "failed to parse interface file",
 		},
@@ -334,51 +311,47 @@ go 1.21`
 type TestInterface interface {
 	Test() error
 }`
-				err := os.WriteFile(tempDir+"/test.go", []byte(interfaceContent), 0644)
-				if err != nil {
-					t.Fatalf("failed to create test file: %v", err)
-				}
+				err := os.WriteFile(tempDir+"/test.go", []byte(interfaceContent), 0o644)
+				require.NoError(t, err, "failed to create test file")
 				// Create valid go.mod
 				goModContent := `module test.com/example
 go 1.21`
-				err = os.WriteFile(tempDir+"/go.mod", []byte(goModContent), 0644)
-				if err != nil {
-					t.Fatalf("failed to create go.mod: %v", err)
-				}
+				err = os.WriteFile(tempDir+"/go.mod", []byte(goModContent), 0o644)
+				require.NoError(t, err, "failed to create go.mod")
 				// Create an implementation
 				implContent := `package main
 type TestStruct struct{}
 func (t *TestStruct) Test() error { return nil }`
-				err = os.WriteFile(tempDir+"/impl.go", []byte(implContent), 0644)
-				if err != nil {
-					t.Fatalf("failed to create impl file: %v", err)
-				}
-				os.Chdir(tempDir)
+				err = os.WriteFile(tempDir+"/impl.go", []byte(implContent), 0o644)
+				require.NoError(t, err, "failed to create impl file")
+				require.NoError(t, os.Chdir(tempDir))
+
 				return tempDir
 			},
-			cleanup:       func(string) {},
 			expectedError: false,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tempDir := tt.setup(t)
-			defer tt.cleanup(tempDir)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// not parallel: setup calls os.Chdir, which mutates global
+			// process state
 
-			err := runFinder(tt.interfaceFile, tt.interfaceName, tt.searchDir)
+			tc.setup(t)
 
-			if tt.expectedError {
-				if err == nil {
-					t.Errorf("expected error but got none")
-				} else if tt.errorContains != "" && !strings.Contains(err.Error(), tt.errorContains) {
-					t.Errorf("expected error containing '%s', got: %v", tt.errorContains, err)
+			err := runFinder(tc.interfaceFile, tc.interfaceName, tc.searchDir)
+
+			if tc.expectedError {
+				require.Error(t, err)
+
+				if tc.errorContains != "" {
+					assert.Contains(t, err.Error(), tc.errorContains)
 				}
-			} else {
-				if err != nil {
-					t.Errorf("unexpected error: %v", err)
-				}
+
+				return
 			}
+
+			require.NoError(t, err)
 		})
 	}
 }

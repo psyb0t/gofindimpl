@@ -4,17 +4,20 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestValidateArgs(t *testing.T) {
+	t.Parallel()
+
 	tempDir := t.TempDir()
 	tempFile := filepath.Join(tempDir, "test.go")
-	
-	if err := os.WriteFile(tempFile, []byte("package main"), 0644); err != nil {
-		t.Fatalf("failed to create temp file: %v", err)
-	}
 
-	tests := []struct {
+	err := os.WriteFile(tempFile, []byte("package main"), 0644)
+	require.NoError(t, err)
+
+	testCases := []struct {
 		name          string
 		interfaceFile string
 		searchDir     string
@@ -40,18 +43,16 @@ func TestValidateArgs(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := validateArgs(tt.interfaceFile, "TestInterface", tt.searchDir)
-			
-			if tt.expectError {
-				if err == nil {
-					t.Error("expected error but got none")
-				}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := validateArgs(tc.interfaceFile, "TestInterface", tc.searchDir)
+
+			if tc.expectError {
+				require.Error(t, err)
 			} else {
-				if err != nil {
-					t.Errorf("unexpected error: %v", err)
-				}
+				require.NoError(t, err)
 			}
 		})
 	}

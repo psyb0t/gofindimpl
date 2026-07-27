@@ -2,6 +2,20 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v1.0.5 — 2026-07-27
+
+Swap logging from logrus to stdlib `log/slog`; refactor the test suite to
+testify.
+
+- **Logging: `github.com/sirupsen/logrus` → stdlib `log/slog`.** Diagnostics now
+  emit via `slog` with structured fields, installed through
+  `github.com/psyb0t/slog-configurator`. All log output goes to **stderr** so it
+  never mixes with the JSON result on stdout; the `-debug` flag selects debug vs
+  error level. logrus is no longer a direct dependency.
+- **Tests refactored to `stretchr/testify`.** Every `*_test.go` now uses
+  `assert`/`require` instead of hand-rolled `if` + `t.Errorf`, with
+  `testCases`/`tc` table naming and `t.Parallel()` on the race-safe tests.
+
 ## v1.0.4 — 2026-07-27
 
 - Bump `github.com/sirupsen/logrus` 1.9.3 → 1.9.4.

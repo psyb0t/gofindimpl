@@ -6,11 +6,10 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/sirupsen/logrus"
 )
 
 type Implementation struct {
@@ -135,7 +134,7 @@ func (f *Finder) getInterfaceMethods(iface *ast.InterfaceType) []string {
 }
 
 func (f *Finder) scanDirectory(searchDir string) error {
-	logrus.Debugf("Starting scan of directory: %s", searchDir)
+	slog.Debug("starting scan", "dir", searchDir)
 
 	err := filepath.Walk(
 		searchDir,
@@ -145,17 +144,16 @@ func (f *Finder) scanDirectory(searchDir string) error {
 			err error,
 		) error {
 			if err != nil {
-				logrus.WithError(err).
-					Debugf("Walk error for path: %s", path)
+				slog.Debug("walk error", "path", path, "err", err)
 
 				return err
 			}
 
-			logrus.WithFields(logrus.Fields{
-				"path":  path,
-				"isDir": info.IsDir(),
-				"name":  info.Name(),
-			}).Debug("Walking path")
+			slog.Debug("walking path",
+				"path", path,
+				"is_dir", info.IsDir(),
+				"name", info.Name(),
+			)
 
 			if !info.IsDir() || strings.HasPrefix(info.Name(), ".") {
 				return nil
@@ -165,7 +163,7 @@ func (f *Finder) scanDirectory(searchDir string) error {
 				return filepath.SkipDir
 			}
 
-			logrus.Debugf("Analyzing directory: %s", path)
+			slog.Debug("analyzing directory", "dir", path)
 			f.analyzeDirectory(path)
 
 			return nil
@@ -181,34 +179,31 @@ func (f *Finder) scanDirectory(searchDir string) error {
 }
 
 func (f *Finder) analyzeDirectory(dirPath string) {
-	logrus.Debugf("Analyzing directory: %s", dirPath)
+	slog.Debug("analyzing directory", "dir", dirPath)
 
 	files, err := f.parsePackageFiles(dirPath)
 	if err != nil {
-		logrus.WithError(err).
-			Debugf("Error parsing files in: %s", dirPath)
+		slog.Debug("error parsing files", "dir", dirPath, "err", err)
 
 		return
 	}
 
 	if len(files) == 0 {
-		logrus.Debugf("No files found in: %s", dirPath)
+		slog.Debug("no files found", "dir", dirPath)
 
 		return
 	}
 
-	logrus.WithField("count", len(files)).
-		Debugf("Found files in: %s", dirPath)
+	slog.Debug("found files", "dir", dirPath, "count", len(files))
 
 	pkg, err := f.typeCheckPackage(files)
 	if err != nil {
-		logrus.WithError(err).
-			Debugf("Type check failed for: %s", dirPath)
+		slog.Debug("type check failed", "dir", dirPath, "err", err)
 
 		return
 	}
 
-	logrus.Debugf("Successfully type-checked package: %s", pkg.Name())
+	slog.Debug("type-checked package", "package", pkg.Name())
 	f.findImplementationsInTypedPackage(dirPath, pkg)
 }
 
@@ -252,7 +247,7 @@ func (f *Finder) typeCheckPackage(files []*ast.File) (*types.Package, error) {
 	pkg, err := f.config.Check(pkgName, f.fset, files, nil)
 	if err != nil {
 		// Try to continue even if type checking fails
-		logrus.WithError(err).Debug("Type checking had errors (continuing anyway)")
+		slog.Debug("type checking had errors, continuing", "err", err)
 	}
 
 	if pkg == nil {

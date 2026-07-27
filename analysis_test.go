@@ -6,9 +6,14 @@ import (
 	"go/token"
 	"go/types"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIsStructType(t *testing.T) {
+	t.Parallel()
+
 	finder := NewFinder("TestInterface")
 
 	src := `
@@ -27,20 +32,16 @@ type TestAlias = string
 
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "test.go", src, 0)
-	if err != nil {
-		t.Fatalf("failed to parse source: %v", err)
-	}
+	require.NoError(t, err)
 
 	config := &types.Config{
 		Error: func(err error) {},
 	}
 
 	pkg, err := config.Check("test", fset, []*ast.File{file}, nil)
-	if err != nil {
-		t.Fatalf("failed to type check: %v", err)
-	}
+	require.NoError(t, err)
 
-	tests := []struct {
+	testCases := []struct {
 		name       string
 		typeName   string
 		expectTrue bool
@@ -57,32 +58,28 @@ type TestAlias = string
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			obj := pkg.Scope().Lookup(tt.typeName)
-			if obj == nil {
-				t.Fatalf("type %s not found", tt.typeName)
-			}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			obj := pkg.Scope().Lookup(tc.typeName)
+			require.NotNil(t, obj, "type %s not found", tc.typeName)
 
 			typeName, ok := obj.(*types.TypeName)
-			if !ok {
-				t.Fatalf("%s is not a type name", tt.typeName)
-			}
+			require.True(t, ok, "%s is not a type name", tc.typeName)
 
 			namedType, ok := typeName.Type().(*types.Named)
-			if !ok {
-				t.Fatalf("%s is not a named type", tt.typeName)
-			}
+			require.True(t, ok, "%s is not a named type", tc.typeName)
 
 			result := finder.isStructType(namedType)
-			if result != tt.expectTrue {
-				t.Errorf("expected %v for %s, got %v", tt.expectTrue, tt.typeName, result)
-			}
+			assert.Equal(t, tc.expectTrue, result)
 		})
 	}
 }
 
 func TestCreateImplementation(t *testing.T) {
+	t.Parallel()
+
 	finder := NewFinder("TestInterface")
 	finder.modulePath = "github.com/test/repo"
 
@@ -94,40 +91,30 @@ type TestStruct struct{}
 
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "test.go", src, 0)
-	if err != nil {
-		t.Fatalf("failed to parse source: %v", err)
-	}
+	require.NoError(t, err)
 
 	config := &types.Config{
 		Error: func(err error) {},
 	}
 
 	pkg, err := config.Check("testpkg", fset, []*ast.File{file}, nil)
-	if err != nil {
-		t.Fatalf("failed to type check: %v", err)
-	}
+	require.NoError(t, err)
 
 	obj := pkg.Scope().Lookup("TestStruct")
 	typeName := obj.(*types.TypeName)
 
 	impl := finder.createImplementation("./pkg/testpkg", pkg, typeName)
 
-	if impl.Package != "testpkg" {
-		t.Errorf("expected package 'testpkg', got '%s'", impl.Package)
-	}
-
-	if impl.Struct != "TestStruct" {
-		t.Errorf("expected struct 'TestStruct', got '%s'", impl.Struct)
-	}
+	assert.Equal(t, "testpkg", impl.Package)
+	assert.Equal(t, "TestStruct", impl.Struct)
 
 	expectedPath := "github.com/test/repo/pkg/testpkg"
-	if impl.PackagePath != expectedPath {
-		t.Errorf("expected package path '%s', got '%s'",
-			expectedPath, impl.PackagePath)
-	}
+	assert.Equal(t, expectedPath, impl.PackagePath)
 }
 
 func TestProcessTypeInScope(t *testing.T) {
+	t.Parallel()
+
 	finder := NewFinder("TestInterface")
 	finder.interfaceMethods = []string{"Start", "Stop"}
 	finder.modulePath = "github.com/test/repo"
@@ -152,49 +139,38 @@ type NotAStruct interface {
 
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "test.go", src, 0)
-	if err != nil {
-		t.Fatalf("failed to parse source: %v", err)
-	}
+	require.NoError(t, err)
 
 	config := &types.Config{
 		Error: func(err error) {},
 	}
 
 	pkg, err := config.Check("testpkg", fset, []*ast.File{file}, nil)
-	if err != nil {
-		t.Fatalf("failed to type check: %v", err)
-	}
+	require.NoError(t, err)
 
 	// Test with complete implementation
 	obj := pkg.Scope().Lookup("TestStruct")
 	finder.processTypeInScope(obj, "./pkg/testpkg", pkg)
 
-	if len(finder.results) != 1 {
-		t.Errorf("expected 1 result for complete implementation, got %d",
-			len(finder.results))
-	}
+	assert.Len(t, finder.results, 1)
 
 	// Reset and test with incomplete implementation
 	finder.results = []Implementation{}
 	obj = pkg.Scope().Lookup("IncompleteStruct")
 	finder.processTypeInScope(obj, "./pkg/testpkg", pkg)
 
-	if len(finder.results) != 0 {
-		t.Errorf("expected 0 results for incomplete implementation, got %d",
-			len(finder.results))
-	}
+	assert.Empty(t, finder.results)
 
 	// Reset and test with interface (not a struct)
 	finder.results = []Implementation{}
 	obj = pkg.Scope().Lookup("NotAStruct")
 	finder.processTypeInScope(obj, "./pkg/testpkg", pkg)
 
-	if len(finder.results) != 0 {
-		t.Errorf("expected 0 results for interface type, got %d", len(finder.results))
-	}
+	assert.Empty(t, finder.results)
 }
 
 func TestProcessTypeInScopeEdgeCases(t *testing.T) {
+	// not parallel: subtests share and mutate finder.results, a race under t.Parallel()
 	finder := NewFinder("TestInterface")
 	finder.interfaceMethods = []string{"Method"}
 
@@ -209,21 +185,17 @@ func GlobalFunc() {}
 
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "test.go", src, 0)
-	if err != nil {
-		t.Fatalf("failed to parse source: %v", err)
-	}
+	require.NoError(t, err)
 
 	config := &types.Config{
 		Error: func(err error) {},
 	}
 
 	pkg, err := config.Check("testpkg", fset, []*ast.File{file}, nil)
-	if err != nil {
-		t.Fatalf("failed to type check: %v", err)
-	}
+	require.NoError(t, err)
 
 	// Test with non-TypeName objects (variable, constant, function)
-	tests := []struct {
+	testCases := []struct {
 		name     string
 		objName  string
 		expected int
@@ -234,31 +206,27 @@ func GlobalFunc() {}
 			expected: 0,
 		},
 		{
-			name:     "global constant", 
+			name:     "global constant",
 			objName:  "GlobalConst",
 			expected: 0,
 		},
 		{
 			name:     "global function",
-			objName:  "GlobalFunc", 
+			objName:  "GlobalFunc",
 			expected: 0,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// not parallel: mutates shared finder.results from the parent test
 			finder.results = []Implementation{} // Reset
-			obj := pkg.Scope().Lookup(tt.objName)
-			if obj == nil {
-				t.Fatalf("object %s not found", tt.objName)
-			}
+			obj := pkg.Scope().Lookup(tc.objName)
+			require.NotNil(t, obj, "object %s not found", tc.objName)
 
 			finder.processTypeInScope(obj, "./pkg/testpkg", pkg)
 
-			if len(finder.results) != tt.expected {
-				t.Errorf("expected %d results for %s, got %d",
-					tt.expected, tt.name, len(finder.results))
-			}
+			assert.Len(t, finder.results, tc.expected)
 		})
 	}
 }

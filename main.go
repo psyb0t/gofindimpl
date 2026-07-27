@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
-	"github.com/sirupsen/logrus"
+	slogconf "github.com/psyb0t/slog-configurator"
 )
 
 const expectedParts = 2
@@ -45,16 +46,22 @@ func setupUsage() {
 	}
 }
 
-func configureLogging(debug bool) {
+func logLevel(debug bool) slog.Level {
 	if debug {
-		logrus.SetLevel(logrus.DebugLevel)
-	} else {
-		logrus.SetLevel(logrus.ErrorLevel)
+		return slog.LevelDebug
 	}
 
-	logrus.SetFormatter(&logrus.TextFormatter{
-		DisableTimestamp: true,
-	})
+	return slog.LevelError
+}
+
+// configureLogging routes ALL diagnostics to stderr at debug level when -debug
+// is set, error level otherwise. stdout is reserved for the JSON result, so a
+// single stderr handler is used deliberately -- a level-splitting handler would
+// route debug lines to stdout and corrupt the tool's output.
+func configureLogging(debug bool) {
+	slogconf.SetHandlers(
+		slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel(debug)}),
+	)
 }
 
 func runFinder(interfaceFile, interfaceName, searchDir string) error {
@@ -80,17 +87,16 @@ func runFinder(interfaceFile, interfaceName, searchDir string) error {
 		return err
 	}
 
-	logrus.WithField("methods", finder.interfaceMethods).
-		Debugf("Found %d interface methods", len(finder.interfaceMethods))
+	slog.Debug("found interface methods",
+		"count", len(finder.interfaceMethods),
+		"methods", finder.interfaceMethods,
+	)
 
 	if err := finder.scanDirectory(searchDir); err != nil {
 		return err
 	}
 
-	logrus.Debugf(
-		"Scan complete, found %d implementations",
-		len(finder.results),
-	)
+	slog.Debug("scan complete", "implementations", len(finder.results))
 
 	implementations := finder.getResults()
 
@@ -181,16 +187,18 @@ func main() {
 		*interfaceSpec,
 	)
 	if err != nil {
-		logrus.Fatal(err)
+		slog.Error("failed to parse interface spec", "err", err)
+		os.Exit(1)
 	}
 
-	logrus.WithFields(logrus.Fields{
-		"interface_file": interfaceFile,
-		"interface_name": interfaceName,
-		"search_dir":     *searchDir,
-	}).Debug("Parsed arguments")
+	slog.Debug("parsed arguments",
+		"interface_file", interfaceFile,
+		"interface_name", interfaceName,
+		"search_dir", *searchDir,
+	)
 
 	if err := runFinder(interfaceFile, interfaceName, *searchDir); err != nil {
-		logrus.Fatal(err)
+		slog.Error("finder failed", "err", err)
+		os.Exit(1)
 	}
 }

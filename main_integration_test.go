@@ -7,40 +7,40 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
+// not parallel: mutates os.Args/os.Stdout/os.Stderr and calls os.Chdir + resets flag.CommandLine (global process state)
 func TestMainWithFixtures(t *testing.T) {
 	// Save original values
 	oldArgs := os.Args
 	oldStdout := os.Stdout
 	oldStderr := os.Stderr
-	
-	defer func() {
+
+	t.Cleanup(func() {
 		os.Args = oldArgs
 		os.Stdout = oldStdout
 		os.Stderr = oldStderr
-	}()
+	})
 
 	// Create a buffer to capture stdout
 	var buf bytes.Buffer
-	
+
 	// Create temp files for redirecting stdout
 	r, w, err := os.Pipe()
-	if err != nil {
-		t.Fatalf("failed to create pipe: %v", err)
-	}
-	
+	require.NoError(t, err)
+
 	os.Stdout = w
 
 	// Set up command line args to use fixtures
 	fixturesDir, err := filepath.Abs(".fixtures")
-	if err != nil {
-		t.Fatalf("failed to get fixtures dir: %v", err)
-	}
-	
+	require.NoError(t, err)
+
 	interfaceFile := filepath.Join(fixturesDir, "internal", "app", "app.go")
 	searchDir := filepath.Join(fixturesDir, "pkg")
-	
+
 	os.Args = []string{
 		"gofindimpl",
 		"-interface", interfaceFile + ":App",
@@ -51,33 +51,36 @@ func TestMainWithFixtures(t *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
 	// Change to fixtures directory for go.mod
-	oldDir, _ := os.Getwd()
-	defer os.Chdir(oldDir)
-	os.Chdir(fixturesDir)
+	oldDir, err := os.Getwd()
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		os.Chdir(oldDir) //nolint:errcheck
+	})
+	os.Chdir(fixturesDir) //nolint:errcheck
 
 	// Capture output in goroutine
 	done := make(chan bool)
 	readDone := make(chan bool)
-	
+
 	// Start reading first
 	go func() {
 		defer close(readDone)
 		defer r.Close()
-		buf.ReadFrom(r)
+		buf.ReadFrom(r) //nolint:errcheck
 	}()
-	
+
 	// Then start main function
 	go func() {
 		defer close(done)
 		defer w.Close()
-		
+
 		// This should not panic and should find implementations
 		defer func() {
 			if r := recover(); r != nil {
-				t.Errorf("main() panicked: %v", r)
+				assert.Fail(t, "main() panicked", "panic: %v", r)
 			}
 		}()
-		
+
 		main()
 	}()
 
@@ -87,14 +90,11 @@ func TestMainWithFixtures(t *testing.T) {
 
 	// Parse the JSON output
 	var results []Implementation
-	if err := json.Unmarshal(buf.Bytes(), &results); err != nil {
-		t.Fatalf("failed to parse JSON output: %v", err)
-	}
+	err = json.Unmarshal(buf.Bytes(), &results)
+	require.NoError(t, err)
 
 	// Verify we found the expected implementations
-	if len(results) != 3 {
-		t.Errorf("expected 3 implementations, got %d", len(results))
-	}
+	require.Len(t, results, 3)
 
 	// Check that we found the expected structs
 	expectedStructs := map[string]string{
@@ -109,31 +109,27 @@ func TestMainWithFixtures(t *testing.T) {
 	}
 
 	for expectedStruct, expectedPackage := range expectedStructs {
-		if foundPackage, exists := foundStructs[expectedStruct]; !exists {
-			t.Errorf("expected struct %s not found", expectedStruct)
-		} else if foundPackage != expectedPackage {
-			t.Errorf("expected %s to be in package %s, got %s",
-				expectedStruct, expectedPackage, foundPackage)
-		}
+		foundPackage, exists := foundStructs[expectedStruct]
+		require.True(t, exists, "expected struct %s not found", expectedStruct)
+		assert.Equal(t, expectedPackage, foundPackage)
 	}
 }
 
+// not parallel: mutates os.Args/os.Stderr and resets flag.CommandLine (global process state)
 func TestMainHelp(t *testing.T) {
 	// Save original values
 	oldArgs := os.Args
 	oldStderr := os.Stderr
-	
-	defer func() {
+
+	t.Cleanup(func() {
 		os.Args = oldArgs
 		os.Stderr = oldStderr
-	}()
+	})
 
 	// Capture stderr for help output
 	r, w, err := os.Pipe()
-	if err != nil {
-		t.Fatalf("failed to create pipe: %v", err)
-	}
-	
+	require.NoError(t, err)
+
 	os.Stderr = w
 
 	// Set up command line args for help
@@ -146,19 +142,19 @@ func TestMainHelp(t *testing.T) {
 	var buf bytes.Buffer
 	done := make(chan bool)
 	readDone := make(chan bool)
-	
+
 	// Start reading first
 	go func() {
 		defer close(readDone)
 		defer r.Close()
-		buf.ReadFrom(r)
+		buf.ReadFrom(r) //nolint:errcheck
 	}()
-	
+
 	// Then start main function
 	go func() {
 		defer close(done)
 		defer w.Close()
-		
+
 		// This should call os.Exit(0) for help, but we can't test that easily
 		// Instead we test that it doesn't panic unexpectedly
 		defer func() {
@@ -167,7 +163,7 @@ func TestMainHelp(t *testing.T) {
 				// That's expected behavior
 			}
 		}()
-		
+
 		main()
 	}()
 
@@ -181,9 +177,7 @@ func TestMainHelp(t *testing.T) {
 		// If we got output, verify it looks like help text
 		expectedTexts := []string{"Usage:", "Options:", "Example:"}
 		for _, expected := range expectedTexts {
-			if !bytes.Contains(buf.Bytes(), []byte(expected)) {
-				t.Errorf("help output should contain '%s'", expected)
-			}
+			assert.Contains(t, output, expected)
 		}
 	}
 }
