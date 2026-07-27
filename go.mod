@@ -4,7 +4,7 @@ go 1.26
 
 tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 
-require github.com/sirupsen/logrus v1.9.3
+require github.com/sirupsen/logrus v1.9.4
 
 require (
 	4d63.com/gocheckcompilerdirectives v1.3.0 // indirect
