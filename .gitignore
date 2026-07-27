@@ -7,3 +7,4 @@ git-update.sh
 .plan-and-delegate/
 .telemetry/
 /gofindimpl
+coverage-percent.txt

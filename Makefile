@@ -32,6 +32,8 @@ test-coverage: ## Run tests with coverage check. Fails if coverage is below the 
 		exit 1; \
 	fi; \
 	result=$$(go tool cover -func=coverage.txt | grep -oP 'total:\s+\(statements\)\s+\K\d+' || echo "0"); \
+	pct=$$(go tool cover -func=coverage.txt | grep -oP 'total:\s+\(statements\)\s+\K[0-9.]+' || echo "0"); \
+	echo "$$pct" > coverage-percent.txt; \
 	if [ $$result -eq 0 ]; then \
 		echo "No test coverage information available."; \
 		exit 0; \

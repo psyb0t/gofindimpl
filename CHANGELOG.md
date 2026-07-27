@@ -2,6 +2,15 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v1.0.7 — 2026-07-27
+
+Coverage badge now uses the dumb-reader badge chain.
+
+- **`make test-coverage` writes the coverage percentage to `coverage-percent.txt`.**
+  The `pipeline.yml` test job uploads it as an artifact, and the `badges` job reads
+  that value and bakes it into `coverage.svg` — the badge workflow no longer runs
+  tests or computes coverage itself. No library code changed.
+
 ## v1.0.6 — 2026-07-27
 
 Self-hosted README badges; drop the third-party badge service.
