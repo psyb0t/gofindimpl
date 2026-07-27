@@ -1,7 +1,10 @@
 # gofindimpl 🔍
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/psyb0t/gofindimpl.svg)](https://pkg.go.dev/github.com/psyb0t/gofindimpl)
-[![CI](https://img.shields.io/github/actions/workflow/status/psyb0t/gofindimpl/pipeline.yml?branch=main)](https://github.com/psyb0t/gofindimpl/actions/workflows/pipeline.yml)
+[![CI](https://github.com/psyb0t/gofindimpl/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/psyb0t/gofindimpl/actions/workflows/pipeline.yml)
+[![coverage](https://raw.githubusercontent.com/psyb0t/gofindimpl/badges/coverage.svg)](https://github.com/psyb0t/gofindimpl/actions/workflows/pipeline.yml)
+[![version](https://raw.githubusercontent.com/psyb0t/gofindimpl/badges/version.svg)](https://github.com/psyb0t/gofindimpl/tags)
+[![license](https://raw.githubusercontent.com/psyb0t/gofindimpl/badges/license.svg)](LICENSE)
 
 Hunt down Go interface implementations like a bloodhound with trust issues.
 

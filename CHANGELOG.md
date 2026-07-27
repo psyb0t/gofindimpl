@@ -2,6 +2,18 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v1.0.6 — 2026-07-27
+
+Self-hosted README badges; drop the third-party badge service.
+
+- **Coverage / version / license badges are now self-rendered SVGs** committed to
+  a `badges` branch by a new `badges` job in `pipeline.yml`, and served from
+  `raw.githubusercontent.com/psyb0t/gofindimpl/badges/*.svg`. No shields.io or
+  other external render service in the path.
+- **CI badge switched to GitHub's native `badge.svg`** (served by GitHub) instead
+  of the shields.io status badge. The `pkg.go.dev` reference badge stays. No
+  library code changed.
+
 ## v1.0.5 — 2026-07-27
 
 Swap logging from logrus to stdlib `log/slog`; refactor the test suite to
