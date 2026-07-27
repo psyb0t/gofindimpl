@@ -2,6 +2,14 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v1.0.8 — 2026-07-27
+
+Lint tooling.
+
+- `make lint` now runs `go fix -diff` as a read-only check (it previously applied
+  fixes in-place during `lint`); run `make lint-fix` to apply them. No library
+  code changed.
+
 ## v1.0.7 — 2026-07-27
 
 Coverage badge now uses the dumb-reader badge chain.
