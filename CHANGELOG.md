@@ -2,6 +2,23 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v1.0.9 — 2026-08-01
+
+Repository infrastructure only. No library code changed.
+
+- Added `.github/workflows/mirror-and-archive.yml`: pushes are mirrored to GitLab
+  and Codeberg, and the default branch plus tags are archived to the Wayback
+  Machine and Software Heritage. Feature-branch pushes skip the archive because
+  it is rate-limited. Gitee mirroring is wired but disabled — it silently creates
+  the repo private unless the account has a mobile number bound.
+- Added `.github/workflows/issue-pull.yml`: issues opened on the GitLab and
+  Codeberg mirrors are pulled back into this repo every six hours. The schedule
+  is staggered per repo and jitters on top of that, since GitHub fires an
+  account's crons at the same instant; a manual `workflow_dispatch` run skips
+  the jitter.
+- Added `.dockerignore` excluding `.telemetry/` so a local scratch dir cannot
+  enter the build context.
+
 ## v1.0.8 — 2026-07-27
 
 Lint tooling.
