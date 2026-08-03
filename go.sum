@@ -494,10 +494,12 @@ github.com/prometheus/procfs v0.1.3/go.mod h1:lV6e/gmhEcM9IjHGsFOCxxuZ+z1YqCvr4O
 github.com/prometheus/procfs v0.6.0/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1xBZuNvfVA=
 github.com/prometheus/procfs v0.7.3 h1:4jVXhlkAyzOScmCkXBTOLRLTz8EeU+eyjrwB/EPq0VU=
 github.com/prometheus/procfs v0.7.3/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1xBZuNvfVA=
-github.com/psyb0t/gonfiguration v1.5.0 h1:B+OrSE060/vgonFI8HKzchradwnEAGvgrNT5KKVXhdU=
-github.com/psyb0t/gonfiguration v1.5.0/go.mod h1:Do7kyHmiD/zQeHzZfriLaRfN4QYSgVTjc2oQsZgysY8=
-github.com/psyb0t/slog-configurator v1.0.0 h1:l4pVQq8LbBEcV4/qIuA+D9JuezuYZnr+74CthNl+Mgg=
-github.com/psyb0t/slog-configurator v1.0.0/go.mod h1:VVvUUF6ivG8nDXUOgpARLRFgrY2B6bq6P5GxbHGnI1I=
+github.com/psyb0t/ctxerrors v0.4.0 h1:pyZ4J2WQBYycuq8V1xhllSCo0qQgw2p3rVu4SxDqm6c=
+github.com/psyb0t/ctxerrors v0.4.0/go.mod h1:h1V0vJtlXGn4H7RuHBtxdrdevBx3CmBTEyJXtFIIrk4=
+github.com/psyb0t/gonfiguration v1.6.0 h1:WSQ1GxktiWXf0SwCaJbXNQn7zYk0bQwLGldH2aHbI9E=
+github.com/psyb0t/gonfiguration v1.6.0/go.mod h1:t6+6TiTyQjFy901xr5abnTEHxdsGTuHhlQpPIcx7pyk=
+github.com/psyb0t/slog-configurator v1.1.2 h1:MvOQT0CvOlnHvgCnL3Fck5ot6kXR6sRTdwGcGIkF6AI=
+github.com/psyb0t/slog-configurator v1.1.2/go.mod h1:3p/D8H6NAueuwbSb9v0bcywYdCd6jJmovf9HoCCQBiU=
 github.com/quasilyte/go-ruleguard v0.4.5 h1:AGY0tiOT5hJX9BTdx/xBdoCubQUAE2grkqY2lSwvZcA=
 github.com/quasilyte/go-ruleguard v0.4.5/go.mod h1:Vl05zJ538vcEEwu16V/Hdu7IYZWyKSwIy4c88Ro1kRE=
 github.com/quasilyte/go-ruleguard/dsl v0.3.23 h1:lxjt5B6ZCiBeeNO8/oQsegE6fLeCzuMRoVWSkXC4uvY=
