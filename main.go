@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	slogconf "github.com/psyb0t/slog-configurator"
+	"github.com/psyb0t/slogging/slogconf"
 )
 
 const expectedParts = 2

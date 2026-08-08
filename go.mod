@@ -4,12 +4,12 @@ go 1.26
 
 tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 
-require (
-	github.com/psyb0t/slog-configurator v1.0.0
-	github.com/sirupsen/logrus v1.9.4 // indirect
-)
+require github.com/sirupsen/logrus v1.9.4 // indirect
 
-require github.com/stretchr/testify v1.11.1
+require (
+	github.com/psyb0t/slogging v1.6.1
+	github.com/stretchr/testify v1.11.1
+)
 
 require (
 	4d63.com/gocheckcompilerdirectives v1.3.0 // indirect
@@ -154,7 +154,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
-	github.com/psyb0t/gonfiguration v1.5.0 // indirect
+	github.com/psyb0t/ctxerrors v0.4.0 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.5 // indirect
 	github.com/quasilyte/go-ruleguard/dsl v0.3.23 // indirect
 	github.com/quasilyte/gogrep v0.5.0 // indirect

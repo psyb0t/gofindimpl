@@ -2,6 +2,15 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v1.0.10 — 2026-08-08
+
+Dependency rename only. No behaviour changed.
+
+- `github.com/psyb0t/slog-configurator` became `github.com/psyb0t/slogging`, with
+  the configurator now at `slogging/slogconf`. Updated the import and dropped the
+  `slogconf` alias it no longer needs — the package is already named `slogconf`.
+  The `SetHandlers` call and every logging default are unchanged.
+
 ## v1.0.9 — 2026-08-01
 
 Repository infrastructure only. No library code changed.
