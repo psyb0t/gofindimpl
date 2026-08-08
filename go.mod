@@ -7,7 +7,7 @@ tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 require github.com/sirupsen/logrus v1.9.4 // indirect
 
 require (
-	github.com/psyb0t/slogging v1.6.1
+	github.com/psyb0t/slogging v1.7.0
 	github.com/stretchr/testify v1.11.1
 )
 

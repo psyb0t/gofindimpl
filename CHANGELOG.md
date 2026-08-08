@@ -2,6 +2,16 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v1.0.11 — 2026-08-08
+
+Dependency bump only. No behaviour changed.
+
+- `slogging` v1.6.1 → v1.7.0, which rebuilt its handler API. Nothing here needed
+  editing: this only calls `SetHandlers`, which kept both its name and its
+  meaning — replace the whole chain. That is the right call for a CLI that wants
+  its own output and nothing else, and the one call the rework deliberately left
+  alone as the start-over escape hatch.
+
 ## v1.0.10 — 2026-08-08
 
 Dependency rename only. No behaviour changed.
