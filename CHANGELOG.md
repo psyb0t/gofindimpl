@@ -2,6 +2,14 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v1.0.12 — 2026-08-08
+
+Documentation. No code change.
+
+- The README stated coverage as **90.8%**; `go test -cover` reports **90.3%**.
+  A hand-maintained number in prose drifts the moment a test lands, which is why
+  the badge on the same page is generated instead.
+
 ## v1.0.11 — 2026-08-08
 
 Dependency bump only. No behaviour changed.

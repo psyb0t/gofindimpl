@@ -108,7 +108,7 @@ JSON, because XML is for people who hate themselves:
 
 ## Requirements ✅
 
-- **Go 1.24+**: Because living in the past is for historians
+- **Go 1.26+**: Because living in the past is for historians
 - **go.mod**: Must run from a proper Go module root (not some anarchist directory)
 - **Valid Go Code**: Broken syntax makes this tool cry
 
@@ -142,7 +142,7 @@ The tool will tell you exactly what's wrong instead of leaving you guessing:
 
 ## Testing Coverage 🧪
 
-Current coverage: **90.8%**
+Current coverage: **90.3%**
 
 Because untested code is like unprotected... well, you get it.
 
