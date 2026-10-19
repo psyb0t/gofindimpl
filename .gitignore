@@ -4,6 +4,7 @@ build
 *.txt
 CLAUDE.md
 git-update.sh
+git-update.sh.debot
 .plan-and-delegate/
 .telemetry/
 /gofindimpl

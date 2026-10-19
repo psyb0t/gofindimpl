@@ -1,0 +1,21 @@
+title = "gofindimpl secret scanning"
+
+[extend]
+useDefault = true
+
+# gitleaks `dir` mode scans the working tree and does not honour .gitignore,
+# so gitignored local paths are named again here. Allowlisting is by path only,
+# never by regex on the matched text.
+[[allowlists]]
+description = "Gitignored local state"
+paths = [
+  '''(^|/)[^/]*\.out$''',
+  '''(^|/)build(?:/|$)''',
+  '''(^|/)[^/]*\.html$''',
+  '''(^|/)[^/]*\.txt$''',
+  '''(^|/)CLAUDE\.md$''',
+  '''(^|/)git-update\.sh(?:\.debot)?$''',
+  '''(^|/)\.plan-and-delegate(?:/|$)''',
+  '''(^|/)\.telemetry(?:/|$)''',
+  '''^gofindimpl$''',
+]
