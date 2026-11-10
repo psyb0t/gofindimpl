@@ -1,7 +1,8 @@
 MIN_TEST_COVERAGE := 90
 APP_NAME := gofindimpl
+DOCS_SITE ?= .testing/docs-site
 
-.PHONY: all dep lint lint-fix test test-coverage build build-race
+.PHONY: all dep lint lint-fix test test-coverage build build-race docs help
 
 all: dep lint-fix test-coverage build ## Run all tasks
 
@@ -81,6 +82,21 @@ build-race: ## Build the app binary using Docker (with race detection)
 		echo 'Build complete, setting ownership...' && \
 		chown -R \$$HOST_UID:\$$HOST_GID /app/build && \
 		echo 'Done!'"
+
+# Builds docs/ with the image GitHub Pages uses, so the local result matches
+# the published site. The output directory is gitignored.
+docs: ## Build the documentation site into .testing/docs-site
+	@mkdir -p "$(DOCS_SITE)"
+	@docker run --rm \
+		--user "$$(id -u):$$(id -g)" \
+		-e HOME=/tmp \
+		-e GITHUB_WORKSPACE=/work \
+		-e GITHUB_REPOSITORY=psyb0t/gofindimpl \
+		-e INPUT_SOURCE=docs \
+		-e INPUT_DESTINATION="$(DOCS_SITE)" \
+		-e INPUT_VERBOSE=false \
+		-v "$(CURDIR):/work" \
+		ghcr.io/actions/jekyll-build-pages:v1.0.13@sha256:6791ebfd912185ed59bfb5fb102664fa872496b79f87ff8b9cfba292a7345041
 
 help: ## Display this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

@@ -2,10 +2,13 @@
 build
 *.html
 *.txt
-CLAUDE.md
+!docs/llms.txt
+!docs/_includes/*.html
 git-update.sh
 git-update.sh.debot
 .plan-and-delegate/
 .telemetry/
 /gofindimpl
 coverage-percent.txt
+*.local.json
+.testing/

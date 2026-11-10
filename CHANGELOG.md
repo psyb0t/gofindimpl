@@ -2,6 +2,14 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v1.0.13 — 2026-11-10
+
+Documentation and CI. No code change.
+
+- The documentation now lives at https://psyb0t.github.io/gofindimpl/, and the reference material moved there from the README.
+- A tag no longer reruns the checks. It waits for the main run of the same commit to pass, cuts the GitHub release from the tag message, and the badges use that run's coverage.
+- Added Buy Me a Coffee to the funding links, and committed `AGENTS.md` plus the project rules in `.agents/rules/` for coding agents.
+
 ## v1.0.12 — 2026-08-08
 
 Documentation. No code change.

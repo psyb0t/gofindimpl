@@ -4,84 +4,39 @@
 [![CI](https://github.com/psyb0t/gofindimpl/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/psyb0t/gofindimpl/actions/workflows/pipeline.yml)
 [![coverage](https://raw.githubusercontent.com/psyb0t/gofindimpl/badges/coverage.svg)](https://github.com/psyb0t/gofindimpl/actions/workflows/pipeline.yml)
 [![version](https://raw.githubusercontent.com/psyb0t/gofindimpl/badges/version.svg)](https://github.com/psyb0t/gofindimpl/tags)
-[![license](https://raw.githubusercontent.com/psyb0t/gofindimpl/badges/license.svg)](LICENSE)
+[![license](https://raw.githubusercontent.com/psyb0t/gofindimpl/badges/license.svg)](https://github.com/psyb0t/gofindimpl/blob/main/LICENSE)
 
 Hunt down Go interface implementations like a bloodhound with trust issues.
 
 Tired of grep-ing through thousands of lines trying to figure out which structs actually implement that damn interface? This tool does the heavy lifting so you don't have to suffer through another existential crisis at 3am.
 
-## Installation 🚀
+## Installation
 
-### Option 1: Install it
 ```bash
 go install github.com/psyb0t/gofindimpl@latest
 ```
 
-### Option 2: Run directly (no installation needed)
+Or skip the install and run it directly:
+
 ```bash
 go run github.com/psyb0t/gofindimpl@latest \
   -interface ./path/to/file.go:InterfaceName \
   -dir ./search/directory
 ```
 
-### Option 3: Clone and build like it's 2005
-```bash
-git clone https://github.com/psyb0t/gofindimpl.git
-cd gofindimpl
-go build -o gofindimpl
-```
+Needs Go 1.26 or newer.
 
-## Usage 💀
+## Usage
 
-### Basic Hunt (installed)
+Run it from your module root, the directory with `go.mod` in it. Not some anarchist directory, it checks.
 
 ```bash
 gofindimpl \
-  -interface ./path/to/file.go:InterfaceName \
-  -dir ./search/directory
-```
-
-### Basic Hunt (direct run)
-
-```bash
-go run github.com/psyb0t/gofindimpl@latest \
-  -interface ./path/to/file.go:InterfaceName \
-  -dir ./search/directory
-```
-
-### Real Example (installed)
-
-```bash
-gofindimpl -interface ./internal/app/server.go:Server -dir ./internal/pkg/
-```
-
-### Real Example (direct run)
-
-```bash
-go run github.com/psyb0t/gofindimpl@latest \
   -interface ./internal/app/server.go:Server \
   -dir ./internal/pkg/
 ```
 
-### With Debug Logging (for masochists)
-
-```bash
-# Installed
-gofindimpl \
-  -interface ./internal/app/server.go:Server \
-  -dir ./internal/pkg/ \
-  -debug
-
-# Direct run  
-go run github.com/psyb0t/gofindimpl@latest \
-  -interface ./internal/app/server.go:Server \
-  -dir ./internal/pkg/ \
-  -debug
-```
-
-## Output Format 📋
-
-JSON, because XML is for people who hate themselves:
+You get JSON on stdout, because XML is for people who hate themselves:
 
 ```json
 [
@@ -98,54 +53,29 @@ JSON, because XML is for people who hate themselves:
 ]
 ```
 
-## How It Works 🧠
+Add `-debug` if you're a masochist and want to watch every directory get walked. Logs go to stderr, so the JSON stays clean enough to pipe into `jq`. Every flag, the output fields and the exit codes are on [Command line](https://psyb0t.github.io/gofindimpl/command-line/).
 
-1. **Parse Interface**: Reads the specified Go file and extracts interface methods
-2. **Scan Directory**: Recursively walks through Go files (skips test files because reasons)
-3. **Type Check**: Uses Go's type checker to validate method signatures
-4. **Match Methods**: Finds structs that implement all interface methods
-5. **Output Results**: Spits out JSON with implementation details
+## How it works
 
-## Requirements ✅
+It parses the interface file, walks `-dir`, type-checks every package it finds with Go's own type checker and a fake importer, and reports each struct whose value or pointer method set has every method name the interface declares. Test files, `vendor`, `node_modules` and dot-directories don't get analyzed.
 
-- **Go 1.26+**: Because living in the past is for historians
-- **go.mod**: Must run from a proper Go module root (not some anarchist directory)
-- **Valid Go Code**: Broken syntax makes this tool cry
+Read the fine print before you trust the output. It compares method names, not signatures, it ignores embedded interfaces, it can't see methods promoted from another package, and with the default `-dir .` it skips the package in the module root itself. [How it works](https://psyb0t.github.io/gofindimpl/how-it-works/) has all of it.
 
-## Features 🎯
+## Documentation
 
-- **Method Set Analysis**: Checks both value and pointer receiver methods
-- **Recursive Search**: Crawls directories like a determined spider
-- **Type Safety**: Uses Go's actual type checker instead of regex nightmares
-- **Package Filtering**: Skips vendor directories and hidden folders automatically
-- **Error Handling**: Fails gracefully instead of exploding in your face
-- **Debug Mode**: For when things go sideways and you need to know why
+The full docs live at **[psyb0t.github.io/gofindimpl](https://psyb0t.github.io/gofindimpl/)**.
 
-## Command Line Options 🛠️
+| Page | What's in it |
+| --- | --- |
+| [Command line](https://psyb0t.github.io/gofindimpl/command-line/) | Flags, the `file.go:InterfaceName` spec, JSON output, logs and exit codes |
+| [How it works](https://psyb0t.github.io/gofindimpl/how-it-works/) | What gets scanned, what counts as an implementation, and the limits |
+| [Troubleshooting](https://psyb0t.github.io/gofindimpl/troubleshooting/) | Every error message, why a search comes back empty, and why it finds too much |
+| [Development](https://psyb0t.github.io/gofindimpl/development/) | Make targets, tests, the coverage gate, CI and releases |
 
-| Flag         | Type   | Default  | Description                             |
-| ------------ | ------ | -------- | --------------------------------------- |
-| `-interface` | string | required | Interface spec: `file.go:InterfaceName` |
-| `-dir`       | string | `.`      | Directory to search for implementations |
-| `-debug`     | bool   | `false`  | Enable debug logging                    |
-| `-help`      | bool   | `false`  | Show help and exit                      |
+## Sponsor
 
-## Error Messages 💥
+<a href="https://www.buymeacoffee.com/psyb0t"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me a Coffee" height="60" width="217"></a>
 
-The tool will tell you exactly what's wrong instead of leaving you guessing:
+## License
 
-- **Interface file not found**: Check your file path
-- **Interface not found in file**: Make sure the interface name exists
-- **No go.mod found**: Run from a proper Go module root
-- **Directory not found**: Search directory doesn't exist
-- **Parse errors**: Fix your Go syntax first
-
-## Testing Coverage 🧪
-
-Current coverage: **90.3%**
-
-Because untested code is like unprotected... well, you get it.
-
-## License 📜
-
-MIT - because pkg.go.dev are corporate fuckers who won't index WTFPL packages.
+MIT, because pkg.go.dev are corporate fuckers who won't index WTFPL packages.
